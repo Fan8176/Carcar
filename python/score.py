@@ -134,6 +134,12 @@ class ScoreboardServer(Scoreboard):
             log.debug(f"{self.ip}/current_score?sid={self.sid}")
             res = requests.get(self.ip + "/current_score", params={"sid": self.sid})
             return res.json()["current_score"]
+        
+            # 👉 在這裡加上這兩行，印出真實狀況：
+            print(f"狀態碼: {res.status_code}")
+            print(f"伺服器回傳內容: {res.text}")
+
+
         except Exception as e:
             log.error(f"Failed to fetch current score: {e}")
             return None
@@ -157,7 +163,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     try:
-        scoreboard = ScoreboardServer("TeamName2", "http://140.112.175.18")
+        scoreboard = ScoreboardServer("震撼教", "http://carcar.ntuee.org")
         # scoreboard = ScoreboardFake("TeamName", "data/fakeUID.csv")
         time.sleep(1)
 
