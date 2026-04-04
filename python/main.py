@@ -56,24 +56,24 @@ def main(mode: int, bt_port: str, team_name: str, server_url: str, maze_file: st
     if mode == "0":
         log.info("Mode 0: For treasure-hunting")
         # TODO : for treasure-hunting, which encourages you to hunt as many scores as possible
-
-
-        msg = bridge.listen()
-            
-        if msg:
-            uid_str = msg.strip() 
-            log.info(f"車車從藍牙收到資料: '{uid_str}'")
-            
-            if len(uid_str) == 8:
-                log.info(f"準備上傳 UID: {uid_str} 至伺服器...")
-                score, time_remaining = point.add_UID(uid_str)
+        while True: 
+            msg = bridge.listen()
                 
-                # 顯示最新總分
-                current_score = point.get_current_score()
-                log.info(f"目前總分: {current_score}")
-            else:
-                log.debug(f"收到非 UID 訊息: {uid_str}")
-
+            if msg:
+                uid_str = msg.strip() 
+                log.info(f"車車從藍牙收到資料: '{uid_str}'")
+                
+                if len(uid_str) == 8:
+                    log.info(f"準備上傳 UID: {uid_str} 至伺服器...")
+                    score, time_remaining = point.add_UID(uid_str)
+                    
+                    # 顯示最新總分
+                    current_score = point.get_current_score()
+                    log.info(f"目前總分: {current_score}")
+                else:
+                    log.debug(f"收到非 UID 訊息: {uid_str}")
+            
+            time.sleep(0.1)
     elif mode == "1":
         log.info("Mode 1: Self-testing mode.")
         # TODO: You can write your code to test specific function.
