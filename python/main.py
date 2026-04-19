@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 # TODO : Fill in the following information
 TEAM_NAME = "震撼教"
-SERVER_URL = "http://carcar.ntuee.org"
+SERVER_URL = "http://carcar.ntuee.org/scoreboard"
 MAZE_FILE = "data/small_maze.csv"
 BT_PORT = "COM7"
 

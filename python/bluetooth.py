@@ -1,4 +1,4 @@
-from bluetooth import HM10ESP32Bridge
+from hm10_esp32 import HM10ESP32Bridge
 import time
 import sys
 import threading
