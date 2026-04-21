@@ -1,111 +1,104 @@
-/***************************************************************************/
-// File       [final_project.ino]
-// Author     [Erik Kuo]
-// Synopsis   [Code for managing main process]
-// Functions  [setup, loop, Search_Mode, Hault_Mode, SetState]
-// Modify     [2020/03/27 Erik Kuo]
-/***************************************************************************/
-
 #define DEBUG  // debug flag
 
-// for RFID
 #include <MFRC522.h>
 #include <SPI.h>
 
-/*===========================define pin & create module object================================*/
-// BlueTooth
-// BT connect to Serial1 (Hardware Serial)
-// Mega               HC05
-// Pin  (Function)    Pin
-// 18    TX       ->  RX
-// 19    RX       <-  TX
-// TB6612, 請按照自己車上的接線寫入腳位(左右不一定要跟註解寫的一樣)
-// TODO: 請將腳位寫入下方
-#define MotorR_I1 0     // 定義 A1 接腳（右）
-#define MotorR_I2 0     // 定義 A2 接腳（右）
-#define MotorR_PWMR 0  // 定義 ENA (PWM調速) 接腳
-#define MotorL_I3 0     // 定義 B1 接腳（左）
-#define MotorL_I4 0     // 定義 B2 接腳（左）
-#define MotorL_PWML 0  // 定義 ENB (PWM調速) 接腳
-// 循線模組, 請按照自己車上的接線寫入腳位
-#define IRpin_LL 0
-#define IRpin_L 0
-#define IRpin_M 0
-#define IRpin_R 0
-#define IRpin_RR 0
-// RFID, 請按照自己車上的接線寫入腳位
-#define RST_PIN 0                 // 讀卡機的重置腳位
-#define SS_PIN 0                  // 晶片選擇腳位
-MFRC522 mfrc522(SS_PIN, RST_PIN);  // 建立MFRC522物件
-// BT
-#define CUSTOM_NAME "HM10_Mega" // Max length is 12 characters [1]
+/*===========================定義腳位================================*/
+// 馬達腳位 (依照你們原本的 AIN, BIN 設定)
+#define MotorR_I1 8     // BIN1
+#define MotorR_I2 9     // BIN2
+#define MotorR_PWMR 11  // PWMB
+#define MotorL_I3 7     // AIN1
+#define MotorL_I4 6     // AIN2
+#define MotorL_PWML 10  // PWMA
 
-/*===========================define pin & create module object===========================*/
+// 循線模組腳位
+#define IRpin_LL A7     // L3
+#define IRpin_L  A6     // L2
+#define IRpin_M  A5     // M
+#define IRpin_R  A4     // R2
+#define IRpin_RR A3     // R3
+
+// RFID 腳位
+#define RST_PIN 3       
+#define SS_PIN 2        
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+
+#define CUSTOM_NAME "carcar"
+
+/*===========================全域變數===========================*/
+int _Tp = 125;           
+bool state = false;       // 車子狀態 (true: 可動, false: 停止)
+int l3 = 0, l2 = 0, m = 0, r2 = 0, r3 = 0; // 感測器讀值狀態
+
+/*=====引入自定義標頭檔 (順序很重要) =====*/
+#include "bluetooth.h"
+#include "track.h"
+#include "node.h"
+#include "RFID.h"
 
 /*============setup============*/
 void setup() {
-    // bluetooth initialization
-    Serial3.begin(9600);  
-    // Serial window
-    Serial.begin(9600);
-    // RFID initial
+    Serial.begin(115200);
+    Serial3.begin(9600); // 假設 HM-10 已經透過原本的腳本設定好 9600
+
     SPI.begin();
     mfrc522.PCD_Init();
-    // TB6612 pin
-    pinMode(MotorR_I1, OUTPUT);
-    pinMode(MotorR_I2, OUTPUT);
-    pinMode(MotorL_I3, OUTPUT);
-    pinMode(MotorL_I4, OUTPUT);
-    pinMode(MotorL_PWML, OUTPUT);
-    pinMode(MotorR_PWMR, OUTPUT);
-    // tracking pin
-    pinMode(IRpin_LL, INPUT);
-    pinMode(IRpin_L, INPUT);
-    pinMode(IRpin_M, INPUT);
-    pinMode(IRpin_R, INPUT);
-    pinMode(IRpin_RR, INPUT);
-#ifdef DEBUG
-    Serial.println("Start!");
-#endif
+
+    pinMode(MotorR_I1, OUTPUT); pinMode(MotorR_I2, OUTPUT); pinMode(MotorR_PWMR, OUTPUT);
+    pinMode(MotorL_I3, OUTPUT); pinMode(MotorL_I4, OUTPUT); pinMode(MotorL_PWML, OUTPUT);
+    pinMode(IRpin_LL, INPUT); pinMode(IRpin_L, INPUT); pinMode(IRpin_M, INPUT);
+    pinMode(IRpin_R, INPUT); pinMode(IRpin_RR, INPUT);
+
+    Serial.println("System Ready!");
+    Serial.println("Waiting for Bluetooth Connection...");
 }
-/*============setup============*/
 
-/*=====Import header files=====*/
-#include "RFID.h"
-#include "bluetooth.h"
-#include "node.h"
-#include "track.h"
-/*=====Import header files=====*/
-
-/*===========================initialize variables===========================*/
-int l2 = 0, l1 = 0, m0 = 0, r1 = 0, r2 = 0;  // 紅外線模組的讀值(0->white,1->black)
-int _Tp = 90;                                // set your own value for motor power
-bool state = false;     // set state to false to halt the car, set state to true to activate the car
-BT_CMD _cmd = NOTHING;  // enum for bluetooth message, reference in bluetooth.h line 2
-/*===========================initialize variables===========================*/
-
-/*===========================declare function prototypes===========================*/
-void Search();    // search graph
-void SetState();  // switch the state
-/*===========================declare function prototypes===========================*/
-
-/*===========================define function===========================*/
+/*===========================主迴圈===========================*/
 void loop() {
-    if (!state)
+    BT_Process(); // 處理藍芽與 RFID
+    
+    if (!state) {
         MotorWriting(0, 0);
-    else
+    } else {
         Search();
-    SetState();
+    }
 }
 
-void SetState() {
-    // TODO:
-    // 1. Get command from bluetooth
-    // 2. Change state if need
+// 整合藍芽收發與 RFID 的邏輯
+void BT_Process() {
+    // 1. 接收藍芽指令並放入 Queue
+    BT_CMD cmd = ask_BT();
+    if (cmd == CMD_W) in(STRAIGHT);
+    else if (cmd == CMD_A) in(LEFT);
+    else if (cmd == CMD_S) in(BACK);
+    else if (cmd == CMD_D) in(RIGHT);
+    else if (cmd == CMD_START) state = true;
+
+    // 2. 處理 RFID
+    byte idSize;
+    byte* id = rfid(idSize);
+    if (id != 0) {
+        send_byte(id, idSize); // 讀到卡片就傳給藍芽
+    }
 }
 
 void Search() {
-    // TODO: let your car search graph(maze) according to bluetooth command from computer(python
-    // code)
+    if (!isEmpty()) {
+        bool onNode = false;
+        while (!onNode) {
+            BT_Process(); // 移動中也要能收指令跟讀卡
+            tracking(_Tp);
+            // Serial.println("tracking9");
+            // Serial3.println("tracking9");
+            if ((l3 + l2 + m + r2 + r3) == 5) {
+                onNode = true;
+            }
+        }
+        Turn(out()); // 到達節點，執行佇列中的轉向
+        Serial.println("node");
+        Serial3.println("node");
+    } else {
+        MotorWriting(0, 0); // 沒有指令時停下 (或可改成原地循線)
+    }
 }
-/*===========================define function===========================*/
