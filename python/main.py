@@ -165,14 +165,25 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
         log.info("模式 1：進入 BFS 測試邏輯...")
         # 這裡可以保留你原本的 BFS ID 輸入與路徑規劃測試
         try:
+            # Mode 1 測試：TSP 全遍歷
             start_idx = int(input("起點 Node ID: "))
-            end_idx = int(input("終點 Node ID: "))
-            node_dict = maze.get_node_dict()
-            path = maze.BFS_2(node_dict[start_idx], node_dict[end_idx])
-            if path:
-                log.info(f"路徑: {[node.index for node in path]}")
-                actions = maze.getActions(path)
-                log.info(f"指令字串: {maze.actions_to_str(actions)}")
+
+            # 直接傳入整數 ID，不要傳 node_dict[start_idx]
+            commands, node_sequence = maze.get_shortest_traversal_path(start_idx)
+
+            print(f"遍歷節點順序: {node_sequence}")
+            print(f"全行程指令: {commands}")
+
+
+            # start_idx = int(input("起點 Node ID: "))
+            # end_idx = int(input("終點 Node ID: "))
+            # node_dict = maze.get_node_dict()
+            # # path = maze.BFS_2(node_dict[start_idx], node_dict[end_idx])
+            # path = maze.get_shortest_traversal_path(node_dict[start_idx])
+            # if path:
+            #     log.info(f"路徑: {[node.index for node in path]}")
+            #     actions = maze.getActions(path)
+            #     log.info(f"指令字串: {maze.actions_to_str(actions)}")
         except Exception as e:
             log.error(f"測試模式錯誤: {e}")
 
