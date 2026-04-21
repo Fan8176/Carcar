@@ -1,51 +1,43 @@
-/***************************************************************************/
-// File			  [bluetooth.h]
-// Author		  [Erik Kuo]
-// Synopsis		[Code for bluetooth communication]
-// Functions  [ask_BT, send_msg, send_byte]
-// Modify		  [2020/03/27 Erik Kuo]
-/***************************************************************************/
-
-/*if you have no idea how to start*/
-/*check out what you have learned from week 2*/
+#ifndef BLUETOOTH_H
+#define BLUETOOTH_H
 
 enum BT_CMD {
     NOTHING,
-    // TODO: add your own command type here
+    CMD_W,
+    CMD_A,
+    CMD_S,
+    CMD_D,
+    CMD_START,
 };
 
 BT_CMD ask_BT() {
     BT_CMD message = NOTHING;
-    char cmd;
     if (Serial3.available()) {
-// TODO:
-// 1. get cmd from Serial3(bluetooth serial)
-// 2. link bluetooth message to your own command type
+        char cmd = Serial3.read();
+        if (cmd == 'F' || cmd == 'f') message = CMD_W;
+        else if (cmd == 'L' || cmd == 'l') message = CMD_A;
+        else if (cmd == 'B' || cmd == 'b') message = CMD_S;
+        else if (cmd == 'R' || cmd == 'r') message = CMD_D;
+        else if (cmd == 'S' || cmd == 's') message = CMD_START;
+
 #ifdef DEBUG
-        Serial.print("cmd : ");
-        Serial.println(cmd);
+        Serial.print("cmd : "); Serial.println(cmd);
 #endif
     }
     return message;
-}  // ask_BT
+}
 
-// send msg back through Serial1(bluetooth serial)
-// can use send_byte alternatively to send msg back
-// (but need to convert to byte type)
-void send_msg(const char& msg) {
-    // TODO:
-}  // send_msg
+// send UID back through Serial3
+void send_byte(byte* id, byte idSize) {
+    String uidStr = "UID:";
+    for (byte i = 0; i < idSize; i++) {
+        uidStr += (id[i] < 0x10 ? " 0" : " ");
+        uidStr += String(id[i], HEX);
+    }
+    uidStr.toUpperCase();
+    
+    Serial3.println(uidStr); // 傳給手機
+    Serial.println(uidStr);  // 顯示在電腦
+}
 
-// send UID back through Serial3(bluetooth serial)
-void send_byte(byte* id, byte& idSize) {
-    for (byte i = 0; i < idSize; i++) {  // Send UID consequently.
-        Serial3.print(id[i]);
-    }
-#ifdef DEBUG
-    Serial.print("Sent id: ");
-    for (byte i = 0; i < idSize; i++) {  // Show UID consequently.
-        Serial.print(id[i], HEX);
-    }
-    Serial.println();
 #endif
-}  // send_byte
