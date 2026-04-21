@@ -12,9 +12,9 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-TEAM_NAME = "震撼教"
+TEAM_NAME = "憨包(電機)"
 SERVER_URL = "http://carcar.ntuee.org/scoreboard"
-MAZE_FILE = "data/small_maze.csv"
+MAZE_FILE = "data/test.csv"
 BT_PORT = "COM3"
 EXPECTED_BT_NAME = "carcar"
 
@@ -61,16 +61,14 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
     maze = Maze(maze_file)
     
     # 1. 初始化計分伺服器 (若伺服器連不上會印出錯誤，網站目前可開)
-    # try:
-    #     point = ScoreboardServer(team_name, server_url)
-    #     log.info("✅ 已成功連線至計分伺服器")
-    # except Exception as e:
-    #     log.error(f"❌ 無法連線至伺服器: {e}")
-    #     sys.exit(1)
+    try:
+        point = ScoreboardServer(team_name, server_url)
+        log.info("✅ 已成功連線至計分伺服器")
+    except Exception as e:
+        log.error(f"❌ 無法連線至伺服器: {e}")
+        sys.exit(1)
 
     # 指令序列與索引 (放在 main 內部，確保迴圈可讀取)
-    cmd_sequence = "frblflbr"
-    cmd_idx = 0
 
     # 2. 模式選擇
     if mode == "0":
@@ -89,29 +87,60 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
         # bridge.send(cmd_sequence[cmd_idx])
         # cmd_idx += 1
         # frulfl
-        bridge.send('f')
-        bridge.send('r')
-        bridge.send('b')
-        bridge.send('l')
-        bridge.send('f')
-        bridge.send('l')
-        bridge.send('b')
-        bridge.send('r')
+        cmd_sequence = "fflbllbrfr"
+        cmd_idx = 3
+        # for i in range(cmd_sequence):
+        #     bridge.send(cmd_sequence[i])
 
         start = True
 
+        uid_list = [
+            "33333333",
+            "00000000",
+            "11111111",
+            "9AC053BD",
+            "22222222",
+            "44444444",
+            "55555555",
+            "66666666",
+            "77777777",
+            "88888888",
+            "99999999",
+            "AAAAAAAA",
+            "BBBBBBBB",
+            "CCCCCCCC",
+            "DDDDDDDD",
+            "EEEEEEEE",
+            "FFFFFFFF"
+        ]
+
         while True: 
+
             if start:
+                # for uid in uid_list:
+                #     log.info("Call add_uid")
+                    
+                #     score, time_remaining = point.add_UID(uid)
+                #     current_score = point.get_current_score()
+                #     log.info(f"Current score: {current_score}")
+                #     time.sleep(1)
+
+                    # 你可以在這裡加入 point.add_UID(uid) 等邏輯
                 bridge.send('s')
+                bridge.send(cmd_sequence[0])
+                bridge.send(cmd_sequence[1])
+                bridge.send(cmd_sequence[2])
                 start = False
+                
+            # log.info(f"當前得分: {point.get_current_score()}")
 
             msg = bridge.listen() 
             if msg:
-                uid_str = msg.strip() 
-                log.info(f"收到訊號: '{uid_str}'")
+                clean_msg = msg.strip() 
+                log.info(f"收到訊號: '{clean_msg}'")
                 
                 # A. 處理節點指令
-                if uid_str == "node":
+                if clean_msg == "node":
                     if cmd_idx < len(cmd_sequence):
                         next_action = cmd_sequence[cmd_idx]
                         bridge.send(next_action)
@@ -121,13 +150,14 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
                         log.warning("所有預設動作指令已發送完畢。")
 
                 # B. 處理 UID (寶藏上傳)
-                elif len(uid_str) == 8:
-                    log.info(f"發現寶藏！準備上傳 UID: {uid_str}")
-                    score, time_remaining = point.add_UID(uid_str)
+                elif clean_msg.startswith("UID"):
+                    uid = clean_msg.removeprefix("UID: ").replace(" ", "")
+                    log.info(f"發現寶藏！準備上傳 UID: {uid}")
+                    score, time_remaining = point.add_UID(uid)
                     log.info(f"當前得分: {point.get_current_score()}")
                 
                 else:
-                    log.debug(f"收到非定義訊息: {uid_str}")
+                    log.debug(f"收到非定義訊息: {clean_msg}")
             
             time.sleep(0.1)
 
