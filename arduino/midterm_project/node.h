@@ -6,10 +6,10 @@ extern int m;
 extern void MotorWriting(double vL, double vR);
 extern void read_sensors();
 
-enum Turn_t {LEFT, RIGHT, BACK, STRAIGHT};
+enum Turn_t {LEFT, RIGHT, BACK, STRAIGHT,STOP};
 
 #define MAX_Q 20
-Turn_t queue[MAX_Q];
+Turn_t queue[MAX_Q]; 
 int head = 0;        
 int tail = 0;        
 int qCount = 0;      
@@ -25,35 +25,52 @@ void in(Turn_t move) {
     }
 }
 
+
+void clear() {
+    head = 0;
+    tail = 0;
+    qCount = 0;
+    Serial3.println("queue cleared");
+}
+
 Turn_t out() {
     if (!isEmpty()) {
         Turn_t move = queue[head];
         head = (head + 1) % MAX_Q;
         qCount--;
-        // if (move == STRAIGHT){ 
-        //     Serial.println("straight9");
-        //     Serial3.println("straight9");
-        // }
-        // else if (move == BACK){ 
-        //     Serial.println("back9");
-        //     Serial3.println("back9");
-        // }
-        // else if (move == RIGHT){ 
-        //     Serial.println("right");
-        //     Serial3.println("right");
-        // }
-        // else if (move == LEFT){ 
-        //     Serial.println("left9");
-        //     Serial3.println("left9");
-        // }        
+
+        if (move == STRAIGHT) Serial3.println('W');
+        else if (move == RIGHT) Serial3.println('D');
+        else if (move == LEFT) Serial3.println('A');
+        else if (move == BACK) Serial3.println('S');
+        else if (move == STOP) {
+            MotorWriting(0,0);
+            clear();
+        }
         return move;
     }
     return STRAIGHT; 
 }
 
+// char queue_buff[MAX_Q];
+// void print_queue() {
+//     for (int i = 0 ; i < qCount ; i++){
+//         if (queue[i] == STRAIGHT) queue_buff[i] = 'f';
+//         else if (queue[i] == BACK) queue_buff[i] = 'b';
+//         else if (queue[i] == RIGHT) queue_buff[i] = 'r';
+//         else if (queue[i] == LEFT) queue_buff[i] = 'l';
+//     }
+    
+//     Serial3.println("pq:");
+//     Serial3.println('\n');
+//     for (int i = 0 ; i < qCount ; i++){
+//         Serial3.print(queue_buff[i]);
+//     }
+// }
+
 void Turn(Turn_t targetDir) {
     // if (targetDir == STRAIGHT) {
-    //     MotorWriting(_Tp, _Tp); delay(500); //待測
+    //     MotorWriting(_Tp, _Tp); delay(425); //待測
     // }
     // else{
         if (targetDir == BACK) {

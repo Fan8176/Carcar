@@ -8,6 +8,7 @@ enum BT_CMD {
     CMD_S,
     CMD_D,
     CMD_START,
+    CMD_STOP
 };
 
 BT_CMD ask_BT() {
@@ -19,6 +20,7 @@ BT_CMD ask_BT() {
         else if (cmd == 'B' || cmd == 'b') message = CMD_S;
         else if (cmd == 'R' || cmd == 'r') message = CMD_D;
         else if (cmd == 'S' || cmd == 's') message = CMD_START;
+        else if (cmd == 'C' || cmd == 'c') message = CMD_STOP;
 
 #ifdef DEBUG
         Serial.print("cmd : "); Serial.println(cmd);

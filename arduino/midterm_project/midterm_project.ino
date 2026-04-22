@@ -52,6 +52,8 @@ void setup() {
 
     Serial.println("System Ready!");
     Serial.println("Waiting for Bluetooth Connection...");
+    clear();
+    
 }
 
 /*===========================主迴圈===========================*/
@@ -66,6 +68,7 @@ void loop() {
 }
 
 // 整合藍芽收發與 RFID 的邏輯
+
 void BT_Process() {
     // 1. 接收藍芽指令並放入 Queue
     BT_CMD cmd = ask_BT();
@@ -73,8 +76,8 @@ void BT_Process() {
     else if (cmd == CMD_A) in(LEFT);
     else if (cmd == CMD_S) in(BACK);
     else if (cmd == CMD_D) in(RIGHT);
-    else if (cmd == CMD_START) state = true;
-
+    else if (cmd == CMD_START) {state = true;  clear();}
+    else if (cmd == CMD_STOP) in(STOP);
     // 2. 處理 RFID
     byte idSize;
     byte* id = rfid(idSize);
@@ -98,6 +101,8 @@ void Search() {
         Turn(out()); // 到達節點，執行佇列中的轉向
         Serial.println("node");
         Serial3.println("node");
+        Serial3.print('\n');
+        // print_queue();
     } else {
         MotorWriting(0, 0); // 沒有指令時停下 (或可改成原地循線)
     }

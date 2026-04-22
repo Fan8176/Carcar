@@ -39,11 +39,22 @@ void read_sensors() {
     int r2_ = analogRead(IRpin_R);
     int r3_ = analogRead(IRpin_RR);
 
-    l3 = (l3_ > 35) ? 1 : 0;
-    l2 = (l2_ > 30) ? 1 : 0;
-    m  = (m_ > 35) ? 1 : 0;
-    r2 = (r2_ > 30) ? 1 : 0;
-    r3 = (r3_ > 40) ? 1 : 0;
+    l3 = (l3_ > 100) ? 1 : 0;
+    l2 = (l2_ > 100) ? 1 : 0;
+    m  = (m_ > 50) ? 1 : 0;
+    r2 = (r2_ > 100) ? 1 : 0;
+    r3 = (r3_ > 200) ? 1 : 0;
+
+    // Serial3.print(l3_); // 將數值印出來
+    // Serial3.print("  ");
+    // Serial3.print(l2_); // 將數值印出來
+    // Serial3.print("  ");
+    // Serial3.print(m_); // 將數值印出來
+    // Serial3.print("  ");
+    // Serial3.print(r2_); // 將數值印出來
+    // Serial3.print("  ");
+    // Serial3.println(r3_); // 將數值印出來
+    // Serial3.println('\n');
 }
 
 void tracking(int Tp) {
