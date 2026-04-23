@@ -5,8 +5,8 @@ extern int _Tp;
 extern int l3, l2, m, r2, r3;
 
 double lastError = 0, error, sum;
-double Kd = 6;
-int Kp = 50, w2 = 1, w3 = 2;
+double Kd = 4;
+int Kp = 25, w2 = 1; double w3 = 2.5;
 bool firstrun = true;
 
 void MotorWriting(double vL, double vR) {

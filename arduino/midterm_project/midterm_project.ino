@@ -94,7 +94,7 @@ void Search() {
             tracking(_Tp);
             // Serial.println("tracking9");
             // Serial3.println("tracking9");
-            if ((l3 + l2 + m + r2 + r3) == 5) {
+            if ((l3 + l2 + m + r2 + r3) >= 4) {
                 onNode = true;
             }
         }
