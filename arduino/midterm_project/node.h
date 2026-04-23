@@ -39,12 +39,13 @@ Turn_t out() {
         head = (head + 1) % MAX_Q;
         qCount--;
 
-        if (move == STRAIGHT) Serial3.println('W');
-        else if (move == RIGHT) Serial3.println('D');
-        else if (move == LEFT) Serial3.println('A');
-        else if (move == BACK) Serial3.println('S');
-        else if (move == STOP) {
+        // if (move == STRAIGHT) Serial3.println('W');
+        // else if (move == RIGHT) Serial3.println('D');
+        // else if (move == LEFT) Serial3.println('A');
+        // else if (move == BACK) Serial3.println('S');
+        /*else*/ if (move == STOP) {
             MotorWriting(0,0);
+            delay(5000);
             clear();
         }
         return move;
@@ -68,20 +69,25 @@ Turn_t out() {
 //     }
 // }
 
+int Tcs; // time constant
+int RTcs; // rotating time constant
+int Rcs; // rotating constant 
+
+
 void Turn(Turn_t targetDir){
   
   if(targetDir == BACK){
-    MotorWriting(60,-60); delay(1000); // 旋轉
-    MotorWriting(50,-50); 
+    MotorWriting(75,-75); delay(750);
+    MotorWriting(60,-60); 
   } else {
-    MotorWriting(100,100); delay(425); // 先置中
+    MotorWriting(_Tp,_Tp); delay(325); // 先置中
     // MotorWriting(0,0); delay(100);
     if(targetDir == LEFT){
-      MotorWriting(-60,60); delay(500); // 旋轉
-      MotorWriting(-50,50); 
+      MotorWriting(-75,75); delay(375); // 旋轉
+      MotorWriting(-60,60); 
     }else if(targetDir == RIGHT){
-      MotorWriting(60,-60); delay(500); // 旋轉
-      MotorWriting(50,-50); 
+      MotorWriting(75,-75); delay(375); // 旋轉
+      MotorWriting(60,-60); 
     }
   }
   m = 0;

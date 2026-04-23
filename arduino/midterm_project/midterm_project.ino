@@ -101,7 +101,6 @@ void Search() {
         Turn(out()); // 到達節點，執行佇列中的轉向
         Serial.println("node");
         Serial3.println("node");
-        Serial3.print('\n');
         // print_queue();
     } else {
         MotorWriting(0, 0); // 沒有指令時停下 (或可改成原地循線)
