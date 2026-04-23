@@ -5,8 +5,8 @@ extern int _Tp;
 extern int l3, l2, m, r2, r3;
 
 double lastError = 0, error, sum;
-double Kd = 4;
-int Kp = 25, w2 = 1; double w3 = 2.5;
+double Kd = 10;
+int Kp = 25, w2 = 1; double w3 = 3;
 bool firstrun = true;
 
 void MotorWriting(double vL, double vR) {
@@ -81,8 +81,12 @@ void tracking(int Tp) {
     
     if (vR > 255) vR = 255; else if (vR < -255) vR = -255;
     if (vL > 255) vL = 255; else if (vL < -255) vL = -255;
-    
+    // if (vL > vR) Serial3.println("RRR");
+    // else if (vR > vL) Serial3.println("LLL");
     MotorWriting(vL, vR); 
+
+    lastError = 0;
+    firstrun = true;
 }
 
 #endif
