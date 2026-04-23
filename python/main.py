@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 TEAM_NAME = "Amanda"
 SERVER_URL = "http://carcar.ntuee.org/scoreboard"
 MAZE_FILE = "data/big_maze_114.csv"
-BT_PORT = "COM3"
+BT_PORT = "COM6"
 EXPECTED_BT_NAME = "carcar"
 
 def get_connected_bridge(port, expected_name):
@@ -111,7 +111,11 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
             "CCCCCCCC",
             "DDDDDDDD",
             "EEEEEEEE",
-            "FFFFFFFF"
+            "FFFFFFFF",
+            "53FE3C31",
+            "5205171E",
+            "9AC053BD",
+            "F159AF1E",
         ]
 
         start = True
@@ -119,10 +123,10 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
         while True: 
 
             if start:
-                # for uid in uid_list:
-                #     log.info("Call add_uid")
+                for uid in uid_list:
+                    log.info("Call add_uid")
                     
-                #     score, time_remaining = point.add_UID(uid)
+                    score, time_remaining = point.add_UID(uid)
                 #     current_score = point.get_current_score()
                 #     log.info(f"Current score: {current_score}")
                 #     time.sleep(1)

@@ -48,7 +48,7 @@ def background_listener(bridge):
 
 # --- 測試區塊：直接執行此檔案時才會跑 ---
 if __name__ == "__main__":
-    TEST_PORT = 'COM3' # 記得確認你的 Port
+    TEST_PORT = 'COM6' # 記得確認你的 Port
     TEST_NAME = 'carcar'
     
     print(f"--- 啟動藍牙測試模式 (Port: {TEST_PORT}) ---")
