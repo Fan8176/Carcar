@@ -68,30 +68,29 @@ Turn_t out() {
 //     }
 // }
 
-void Turn(Turn_t targetDir) {
-    // if (targetDir == STRAIGHT) {
-    //     MotorWriting(_Tp, _Tp); delay(425); //待測
-    // }
-    // else{
-        if (targetDir == BACK) {
-            MotorWriting(75, -75); delay(770); 
-            MotorWriting(62, -62); 
-        } else {
-            MotorWriting(_Tp, _Tp); delay(325); // 先置中
-            if (targetDir == LEFT) {
-                MotorWriting(-75, 75); delay(385); 
-                MotorWriting(-62, 62); 
-            } else if (targetDir == RIGHT) {
-                MotorWriting(75, -75); delay(385); 
-                MotorWriting(62, -62); 
-            }
-        }
-    // }
-    m = 0;
-    while (m == 0) {
-        read_sensors(); 
+void Turn(Turn_t targetDir){
+  
+  if(targetDir == BACK){
+    MotorWriting(60,-60); delay(1000); // 旋轉
+    MotorWriting(50,-50); 
+  } else {
+    MotorWriting(100,100); delay(425); // 先置中
+    // MotorWriting(0,0); delay(100);
+    if(targetDir == LEFT){
+      MotorWriting(-60,60); delay(500); // 旋轉
+      MotorWriting(-50,50); 
+    }else if(targetDir == RIGHT){
+      MotorWriting(60,-60); delay(500); // 旋轉
+      MotorWriting(50,-50); 
     }
-    MotorWriting(0, 0);
+  }
+  m = 0;
+  while(m == 0){
+    read_sensors(); 
+  }
+
+  MotorWriting(0,0);
 }
+
 
 #endif
