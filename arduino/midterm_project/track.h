@@ -6,7 +6,7 @@ extern int l3, l2, m, r2, r3;
 
 double lastError = 0, error, sum;
 double Kd = 10;
-int Kp = 25, w2 = 1; double w3 = 3;
+int Kp = 25; double w2 = 1; double w3 = 3;
 bool firstrun = true;
 
 void MotorWriting(double vL, double vR) {
@@ -41,7 +41,7 @@ void read_sensors() {
 
     l3 = (l3_ > 100) ? 1 : 0;
     l2 = (l2_ > 100) ? 1 : 0;
-    m  = (m_ > 50) ? 1 : 0;
+    m  = (m_ > 100) ? 1 : 0;
     r2 = (r2_ > 100) ? 1 : 0;
     r3 = (r3_ > 200) ? 1 : 0;
 
@@ -89,4 +89,36 @@ void tracking(int Tp) {
     firstrun = true;
 }
 
+void back_tracking(int Tp) {
+    Tp *= -1;
+    read_sensors();
+    sum = l3 + l2 + m + r2 + r3;
+    
+    if (sum == 0) {
+        error = lastError; 
+    } else {
+        error = double(l3 * (-w3) + l2 * (-w2) + r2 * w2 + r3 * w3) / sum;
+    }
+    
+    if (firstrun) {
+        lastError = error;
+        firstrun = false;
+    }
+    
+    double dError = error - lastError;
+    double powerCorrection = (Kp * error + Kd * dError);
+    lastError = error;
+    
+    int vR = Tp + powerCorrection;
+    int vL = Tp - powerCorrection;  
+    
+    if (vR > 255) vR = 255; else if (vR < -255) vR = -255;
+    if (vL > 255) vL = 255; else if (vL < -255) vL = -255;
+    // if (vL > vR) Serial3.println("RRR");
+    // else if (vR > vL) Serial3.println("LLL");
+    MotorWriting(vL, vR); 
+
+    lastError = 0;
+    firstrun = true;
+}
 #endif
