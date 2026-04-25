@@ -27,7 +27,10 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 #define CUSTOM_NAME "carcar"
 
 /*===========================全域變數===========================*/
-int _Tp = 125;           
+float rate = 1.48;
+int _Tp = 125*rate;
+int normalmo = _Tp;
+int slowmo = _Tp/rate;          
 bool state = false;       // 車子狀態 (true: 可動, false: 停止)
 int l3 = 0, l2 = 0, m = 0, r2 = 0, r3 = 0; // 感測器讀值狀態
 
@@ -78,6 +81,8 @@ void BT_Process() {
     else if (cmd == CMD_D) in(RIGHT);
     else if (cmd == CMD_START) {state = true;  clear();}
     else if (cmd == CMD_STOP) in(STOP);
+    else if (cmd == CMD_S_PLUS) in(BACKT);
+    
     // 2. 處理 RFID
     byte idSize;
     byte* id = rfid(idSize);
@@ -86,21 +91,39 @@ void BT_Process() {
     }
 }
 
+bool backing = false;
+int mode = 0; 
+
 void Search() {
     if (!isEmpty()) {
         bool onNode = false;
         while (!onNode) {
             BT_Process(); // 移動中也要能收指令跟讀卡
-            tracking(_Tp);
+            if (!backing) tracking(_Tp);
+            else if (backing) back_tracking(_Tp);
             // Serial.println("tracking9");
             // Serial3.println("tracking9");
             if ((l3 + l2 + m + r2 + r3) >= 4) {
                 onNode = true;
+                backing = false;
             }
         }
+        if (l3 + l2 + m + r2 + r3 == 5){  
+            Serial3.println("node");
+            mode = 0;
+            // _Tp = normalmo;
+        }
+        else if (l3 + l2 + m + r2 == 4){
+            Serial3.println("nodeL");
+            mode = -1;
+            // _Tp = slowmo;
+        }
+        else if (r3 + r2 + m + l2 == 4){
+            Serial3.println("nodeR");
+            mode = 1;
+            // _Tp = slowmo;
+        }
         Turn(out()); // 到達節點，執行佇列中的轉向
-        Serial.println("node");
-        Serial3.println("node");
         // print_queue();
     } else {
         MotorWriting(0, 0); // 沒有指令時停下 (或可改成原地循線)

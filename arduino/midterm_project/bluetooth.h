@@ -7,6 +7,7 @@ enum BT_CMD {
     CMD_A,
     CMD_S,
     CMD_D,
+    CMD_S_PLUS,
     CMD_START,
     CMD_STOP
 };
@@ -18,13 +19,14 @@ BT_CMD ask_BT() {
         if (cmd == 'F' || cmd == 'f') message = CMD_W;
         else if (cmd == 'L' || cmd == 'l') message = CMD_A;
         else if (cmd == 'B' || cmd == 'b') message = CMD_S;
+        else if (cmd == 'X' || cmd == 'x') message = CMD_S_PLUS;
         else if (cmd == 'R' || cmd == 'r') message = CMD_D;
         else if (cmd == 'S' || cmd == 's') message = CMD_START;
         else if (cmd == 'C' || cmd == 'c') message = CMD_STOP;
 
-#ifdef DEBUG
-        Serial.print("cmd : "); Serial.println(cmd);
-#endif
+    #ifdef DEBUG
+            Serial.print("cmd : "); Serial.println(cmd);
+    #endif
     }
     return message;
 }
