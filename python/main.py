@@ -23,7 +23,7 @@ EXPECTED_BT_NAME = "carcar"
 #     """藍牙連線與配置核心邏輯"""
 #     try:
 #         bridge = HM10ESP32Bridge(port=port)
-        
+        # 現在忘掉之前的程式碼但記住輸入格式與專案架構，現在寫出一個演算法使用最短路徑遍歷所有端點並計算
 #         # 1. 檢查並修正模組名稱
 #         current_name = bridge.get_hm10_name()
 #         if current_name != expected_name:
@@ -79,24 +79,10 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
     bridge = None  # 先宣告，以便 finally 區塊引用
 
     try:
-        # 1. 初始化計分伺服器
-
-        
-        # uid_list = [
-        #     "10BA617E", "33333333", "00000000", "11111111", "9AC053BD",
-        #     "22222222", "44444444", "55555555", "66666666", "77777777",
-        #     "88888888", "99999999", "AAAAAAAA", "BBBBBBBB", "CCCCCCCC",
-        #     "DDDDDDDD", "EEEEEEEE", "FFFFFFFF", "53FE3C31", "5205171E",
-        #     "9AC053BD", "F159AF1E","553C6173"
-        # ]
-
-        # # --- 啟動初始化階段 ---
-        # log.info("正在上傳預設 UID 列表...")
-        # for uid in uid_list:
-        #     point.add_UID(uid)
 
         # 2. 模式選擇
         if mode == "0":
+
             log.info(f"模式 0：尋寶任務啟動。嘗試連線至 {bt_port}...")
             bridge = get_connected_bridge(bt_port, EXPECTED_BT_NAME)
             
@@ -106,18 +92,26 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
 
             log.info("✨ 藍芽系統就緒！")
 
+            # start_idx = int(input("起點 Node ID: "))
+            # commands, node_sequence = maze.get_shortest_traversal_path(start_idx)
 
             
-            try:
-                point = ScoreboardServer(team_name, server_url)
-                log.info("✅ 已成功連線至計分伺服器")
-            except Exception as e:
-                log.error(f"❌ 無法連線至伺服器: {e}")
-                sys.exit(1)
+            # try:
+            #     point = ScoreboardServer(team_name, server_url)
+            #     log.info("✅ 已成功連線至計分伺服器")
+            # except Exception as e:
+            #     log.error(f"❌ 無法連線至伺服器: {e}")
+            #     sys.exit(1)
             
-            # cmd_sequence = "fllbrffrrblrlbfblrffrlbrrlbrrlrrfbfrrlrrbfbrlrrffrfbflrflrr" # big maze ( best path)
-            cmd_sequence = "fflfbfrrlrbllfrbffc" # medium maze
-            # cmd_sequence = "fflfbfrrlrvllfrbffc" # test
+            # cmd_sequence = "fllurffflufnllrnlfffflurllufrffrfufrrlrrnfurlrrfrlrnflrrlfufrrlrrc" (shortest path)
+
+            # cmd_sequence = "fllfrbfbrffrbflfc" # medium maze 7
+            cmd_sequence = "fflfbfrrlrbllfrbfc" # 1
+            # cmd_sequence = "ffbrfrrblrrbflfc"  # 12
+            # cmd_sequence = "ffblfrrblrrbflfc" # 10
+
+            # log.info(f"Commands:{commands}")
+            # cmd_sequence = commands + "c" # test
             cmd_idx = 3 # 因為 start 階段會先送出 index 0, 1, 2
 
             # uid_list = [
@@ -137,6 +131,7 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
             bridge.send('s')
             time.sleep(0.5) # 等待車車啟動準備
             # 一次送出前三個指令
+            start_time = time.perf_counter()
             bridge.send(cmd_sequence[0])
             bridge.send(cmd_sequence[1])
             bridge.send(cmd_sequence[2])
@@ -160,18 +155,21 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
                                 next_action = cmd_sequence[cmd_idx]
                                 bridge.send(next_action)
                                 log.info(f">>> 發送下一動: {next_action} (Index: {cmd_idx})")
-                                cmd_idx += 1
                             else:
+                                if cmd_idx == len(cmd_sequence) + 2:
+                                    end_time = time.perf_counter()
+                                    duration = end_time - start_time
+                                    log.info(f"總共花費了 {duration:.4f} 秒")
                                 log.warning("所有指令已發送完畢。")
-
+                            cmd_idx += 1
                         # B. 處理 UID (車車現場讀到的)
                         elif "UID" in clean_msg:
                             # 支援 "UID: XXXXXXXX" 或 "UID XXXXXXXX"
                             uid = clean_msg.replace("UID:", "").replace(" ", "").strip()
                             if len(uid) == 8:
                                 log.info(f"發現現場寶藏！上傳 UID: {uid}")
-                                point.add_UID(uid)
-                                log.info(f"當前得分: {point.get_current_score()}")
+                                # point.add_UID(uid)
+                                # log.info(f"當前得分: {point.get_current_score()}")
                             else:
                                 log.warning(f"無效的 UID 長度: {uid}")
                 
@@ -180,7 +178,7 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
         elif mode == "1":
             log.info("模式 1：進入 BFS 測試邏輯...")
             start_idx = int(input("起點 Node ID: "))
-            commands, node_sequence = maze.navigate(start_idx)
+            commands, node_sequence = maze.get_shortest_traversal_path(start_idx)
             print(f"遍擬節點順序: {node_sequence}")
             print(f"全行程指令: {commands}")
 
@@ -190,6 +188,7 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
         log.error(f"執行過程中發生未預期錯誤: {e}")
     finally:
         # --- 核心修正：釋放資源 ---
+        
         if bridge and bridge.ser and bridge.ser.is_open:
             log.info("正在關閉藍牙連線並釋放 Port...")
             bridge.ser.close()
@@ -198,3 +197,11 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
 if __name__ == "__main__":
     args = parse_args()
     main(**vars(args))
+
+
+'''
+f (前進)	1.06, 1.01, 1.14, 1.07	1.07 s
+b (後退)	1.27, 1.19, 1.13, 1.22	1.20 s
+l (左轉)	1.06, 0.99, 1.06, 1.04	1.04 s
+r (右轉)	1.03, 1.01, 0.99, 1.01	1.01 s
+'''
