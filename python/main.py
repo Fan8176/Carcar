@@ -12,9 +12,10 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-TEAM_NAME = "Amanda"
+TEAM_NAME = "Team1"
 SERVER_URL = "http://carcar.ntuee.org/scoreboard"
-MAZE_FILE = "data/big_maze_114.csv"
+MAZE_FILE = "data/medium_maze.csv"
+# MAZE_FILE = "data/big_maze_114.csv"
 BT_PORT = "COM3"
 EXPECTED_BT_NAME = "carcar"
 
@@ -96,36 +97,27 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
             # commands, node_sequence = maze.get_shortest_traversal_path(start_idx)
 
             
-            # try:
-            #     point = ScoreboardServer(team_name, server_url)
-            #     log.info("✅ 已成功連線至計分伺服器")
-            # except Exception as e:
-            #     log.error(f"❌ 無法連線至伺服器: {e}")
-            #     sys.exit(1)
-            
-            # cmd_sequence = "fllurffflufnllrnlfffflurllufrffrfufrrlrrnfurlrrfrlrnflrrlfufrrlrrc" (shortest path)
+            try:
+                point = ScoreboardServer(team_name, server_url)
+                log.info("✅ 已成功連線至計分伺服器")
+            except Exception as e:
+                log.error(f"❌ 無法連線至伺服器: {e}")
+                sys.exit(1)
+            cmd_sequence = ""
+            cmd_sequence = "fllurffrrnlrlufnlrffrlurrlurfrfrfufrrlrrnfurlrrfrlrnflrrlfufrrlrr" # (shortest path)
+            cmd_sequence = "frfrrnlrlufnlrffrlurrlurrlrrfufrrlrrnfurlrrfrlrnflrrlfufrrlrrnllrrfrf" # Time Limit: 65(best path, node 19 final)
 
-            # cmd_sequence = "fllfrbfbrffrbflfc" # medium maze 7
-            cmd_sequence = "fflfbfrrlrbllfrbfc" # 1
-            # cmd_sequence = "ffbrfrrblrrbflfc"  # 12
-            # cmd_sequence = "ffblfrrblrrbflfc" # 10
+
+
+            # cmd_sequence = "fllfrnfurffrnflf" # medium maze 7
+            # cmd_sequence = "fflfufrrlrnllfrnf" # 1
+            # cmd_sequence = "ffurfrrnlrrnflf"  # 12
+            # cmd_sequence = "ffnlfrrnlrrnflf" # 10
+            # cmd_sequence = "ffrfnllrnllfrnf" # 9
 
             # log.info(f"Commands:{commands}")
-            # cmd_sequence = commands + "c" # test
-            cmd_idx = 3 # 因為 start 階段會先送出 index 0, 1, 2
-
-            # uid_list = [
-            #     "10BA617E", "33333333", "00000000", "11111111", "9AC053BD",
-            #     "22222222", "44444444", "55555555", "66666666", "77777777",
-            #     "88888888", "99999999", "AAAAAAAA", "BBBBBBBB", "CCCCCCCC",
-            #     "DDDDDDDD", "EEEEEEEE", "FFFFFFFF", "53FE3C31", "5205171E",
-            #     "9AC053BD", "F159AF1E", "553C6173"
-            # ]
-
-            # # --- 啟動初始化階段 ---
-            # log.info("正在上傳預設 UID 列表...")
-            # for uid in uid_list:
-            #     point.add_UID(uid)
+            cmd_sequence = cmd_sequence + "c" # test
+            cmd_idx = 2 # 因為 start 階段會先送出 index 0, 1, 2
             
             log.info("發送啟動指令 's' 及初始路徑...")
             bridge.send('s')
@@ -134,7 +126,7 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
             start_time = time.perf_counter()
             bridge.send(cmd_sequence[0])
             bridge.send(cmd_sequence[1])
-            bridge.send(cmd_sequence[2])
+            # bridge.send(cmd_sequence[2])
 
             log.info("進入監聽狀態...")
             while True: 
@@ -156,19 +148,19 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
                                 bridge.send(next_action)
                                 log.info(f">>> 發送下一動: {next_action} (Index: {cmd_idx})")
                             else:
-                                if cmd_idx == len(cmd_sequence) + 2:
+                                if cmd_idx == len(cmd_sequence) + 1:
                                     end_time = time.perf_counter()
                                     duration = end_time - start_time
                                     log.info(f"總共花費了 {duration:.4f} 秒")
                                 log.warning("所有指令已發送完畢。")
                             cmd_idx += 1
                         # B. 處理 UID (車車現場讀到的)
-                        elif "UID" in clean_msg:
+                        if "UID" in clean_msg:
                             # 支援 "UID: XXXXXXXX" 或 "UID XXXXXXXX"
-                            uid = clean_msg.replace("UID:", "").replace(" ", "").strip()
+                            uid = clean_msg.replace("UID:", "").replace(" ", "").replace("node","").strip()
                             if len(uid) == 8:
                                 log.info(f"發現現場寶藏！上傳 UID: {uid}")
-                                # point.add_UID(uid)
+                                point.add_UID(uid)
                                 # log.info(f"當前得分: {point.get_current_score()}")
                             else:
                                 log.warning(f"無效的 UID 長度: {uid}")
@@ -178,9 +170,19 @@ def main(mode: str, bt_port: str, team_name: str, server_url: str, maze_file: st
         elif mode == "1":
             log.info("模式 1：進入 BFS 測試邏輯...")
             start_idx = int(input("起點 Node ID: "))
-            commands, node_sequence = maze.get_shortest_traversal_path(start_idx)
+            commands, node_sequence,endpoint_order, total_time = maze.get_shortest_traversal_path(start_idx)
+            # commands, node_sequence, endpoint_order, total_time, time_with_tail = maze.get_time_limited_path(
+            #     start_idx  = start_idx,
+            #     time_limit = 65.0,
+            # )
+            print(f"端點順序: {endpoint_order}")
+            # print(f"保證時長（不含捨棄）: {total_time:.2f} 秒")
+            # print(f"含捨棄端點接尾: {time_with_tail:.2f} 秒")
+            # print(f"端點拜訪順序: {endpoint_order}")
+
             print(f"遍擬節點順序: {node_sequence}")
             print(f"全行程指令: {commands}")
+            log.info(total_time)
 
     except KeyboardInterrupt:
         log.info("\n偵測到使用者中斷程式執行。")
